@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -134,14 +134,14 @@ model TicketHistory {
 }
 
 model Attachment {
-  id         Int      @id @default(autoincrement())
-  ticketId   Int
-  ticket     Ticket   @relation(fields: [ticketId], references: [id])
+  id           Int      @id @default(autoincrement())
+  ticketId     Int
+  ticket       Ticket   @relation(fields: [ticketId], references: [id])
   originalName String
-  storedName String
-  mimeType   String
-  size       Int
-  createdAt  DateTime @default(now())
+  storedName   String
+  mimeType     String
+  size         Int
+  createdAt    DateTime @default(now())
 }
 
 model Setting {
