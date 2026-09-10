@@ -1,0 +1,17 @@
+const router = require("express").Router();
+const c = require("../controllers/admin");
+const { auth, requireRole } = require("../middlewares/auth");
+router.use(auth, requireRole("ADMIN"));
+router.get("/dashboard", c.dashboard);
+router.get("/users", c.users);
+router.post("/users", c.createUser);
+router.patch("/users/:id", c.updateUser);
+router.delete("/users/:id", c.deleteUser);
+router.get("/categories", c.categories);
+router.post("/categories", c.createCategory);
+router.patch("/categories/:id", c.updateCategory);
+router.delete("/categories/:id", c.deleteCategory);
+router.get("/settings", c.settings);
+router.put("/settings", c.updateSettings);
+router.get("/export/csv", c.exportCsv);
+module.exports = router;

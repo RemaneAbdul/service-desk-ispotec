@@ -1,0 +1,2 @@
+-- Run with Prisma migrate dev or deploy. The schema is the source of truth.
+-- `npm run db:migrate` creates the SQLite database and migration.

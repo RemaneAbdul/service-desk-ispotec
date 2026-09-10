@@ -1,0 +1,151 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  COLABORADOR
+  TECNICO
+  ADMIN
+}
+
+enum TicketType {
+  INCIDENTE
+  SOLICITACAO
+  RECLAMACAO
+  OUTRO
+}
+
+enum TicketStatus {
+  ABERTO
+  EM_ATENDIMENTO
+  PENDENTE
+  RESOLVIDO
+  FECHADO
+  CANCELADO
+}
+
+enum Priority {
+  BAIXA
+  MEDIA
+  ALTA
+  CRITICA
+}
+
+enum CommentVisibility {
+  PUBLICA
+  INTERNA
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  name         String
+  email        String    @unique
+  passwordHash String
+  department   String
+  phone        String?
+  role         Role      @default(COLABORADOR)
+  active       Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  tickets      Ticket[]  @relation("Requester")
+  assigned     Ticket[]  @relation("Assignee")
+  comments     Comment[]
+  history      TicketHistory[]
+}
+
+model Category {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  tickets   Ticket[]
+}
+
+model Ticket {
+  id                 Int          @id @default(autoincrement())
+  number             String       @unique
+  requesterId        Int
+  requester          User         @relation("Requester", fields: [requesterId], references: [id])
+  department         String
+  type               TicketType
+  categoryId         Int
+  category           Category     @relation(fields: [categoryId], references: [id])
+  priority           Priority
+  status             TicketStatus @default(ABERTO)
+  subject            String
+  description        String
+  affectedService    String?
+  occurrenceAt       DateTime?
+  assigneeId         Int?
+  assignee           User?        @relation("Assignee", fields: [assigneeId], references: [id])
+  dueFirstResponse   DateTime?
+  dueResolution      DateTime?
+  firstRespondedAt   DateTime?
+  resolvedAt         DateTime?
+  closedAt           DateTime?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  print              PrintRequest?
+  comments           Comment[]
+  history            TicketHistory[]
+  attachments        Attachment[]
+}
+
+model PrintRequest {
+  id                 Int      @id @default(autoincrement())
+  ticketId           Int      @unique
+  ticket             Ticket   @relation(fields: [ticketId], references: [id])
+  documentType       String
+  discipline         String?
+  pages              Int
+  copies             Int      @default(1)
+  format             String
+  scheduledAt        DateTime
+  observations       String?
+  approvalRequired   Boolean  @default(false)
+}
+
+model Comment {
+  id         Int               @id @default(autoincrement())
+  ticketId   Int
+  ticket     Ticket            @relation(fields: [ticketId], references: [id])
+  authorId   Int
+  author     User              @relation(fields: [authorId], references: [id])
+  body       String
+  visibility CommentVisibility @default(PUBLICA)
+  createdAt  DateTime          @default(now())
+}
+
+model TicketHistory {
+  id          Int      @id @default(autoincrement())
+  ticketId    Int
+  ticket      Ticket   @relation(fields: [ticketId], references: [id])
+  authorId    Int
+  author      User     @relation(fields: [authorId], references: [id])
+  action      String
+  oldValue    String?
+  newValue    String?
+  note        String?
+  createdAt   DateTime @default(now())
+}
+
+model Attachment {
+  id         Int      @id @default(autoincrement())
+  ticketId   Int
+  ticket     Ticket   @relation(fields: [ticketId], references: [id])
+  originalName String
+  storedName String
+  mimeType   String
+  size       Int
+  createdAt  DateTime @default(now())
+}
+
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
