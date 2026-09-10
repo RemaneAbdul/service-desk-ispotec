@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "node --watch server/src/server.js",
     "start": "node server/src/server.js",
+    "vercel-build": "prisma generate --schema server/prisma/schema.prisma && prisma db push --schema server/prisma/schema.prisma",
     "db:generate": "prisma generate --schema server/prisma/schema.prisma",
     "db:migrate": "prisma migrate dev --schema server/prisma/schema.prisma",
     "db:seed": "node server/src/seed.js",
