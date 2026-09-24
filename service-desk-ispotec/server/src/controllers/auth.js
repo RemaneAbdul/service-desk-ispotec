@@ -175,3 +175,16 @@ exports.departments = async (req,res) => {
   if(error) return res.status(400).json({error:"Não foi possível carregar departamentos."});
   res.json(data || []);
 };
+
+
+exports.notifications = async (req,res) => {
+  const {data,error}=await adminClient.from("notifications").select("*").eq("user_id",req.profile.id).order("created_at",{ascending:false}).limit(50);
+  if(error) return res.status(400).json({error:"Não foi possível carregar notificações."});
+  res.json(data || []);
+};
+
+exports.markNotificationRead = async (req,res) => {
+  const {error}=await adminClient.from("notifications").update({read_at:new Date().toISOString()}).eq("id",req.params.id).eq("user_id",req.profile.id);
+  if(error) return res.status(400).json({error:"Não foi possível actualizar a notificação."});
+  res.json({message:"Notificação marcada como lida."});
+};
