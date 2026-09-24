@@ -168,3 +168,10 @@ exports.setStatus = async (req, res) => {
   await audit({ actorId: req.profile.id, action: "ESTADO_UTILIZADOR_ALTERADO", entityType: "profile", entityId: id, metadata: { from: target.status, to: status } });
   res.json({ message: "Estado actualizado com sucesso." });
 };
+
+
+exports.departments = async (req,res) => {
+  const {data,error}=await adminClient.from("departments").select("id,name").eq("status","Activo").order("name");
+  if(error) return res.status(400).json({error:"Não foi possível carregar departamentos."});
+  res.json(data || []);
+};
