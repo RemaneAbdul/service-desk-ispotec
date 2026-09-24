@@ -1,61 +1,67 @@
 # Service Desk ISPOTEC
 
-Sistema web de Service Desk para registo e gestão de incidentes, solicitações, reclamações/sugestões e outros pedidos.
-
-## Stack
-
-- Node.js 20+
-- Express 5
-- Prisma ORM
-- PostgreSQL
-- Frontend HTML/CSS/JavaScript
-- JWT + RBAC
-- Vercel Serverless Functions
-
-## Execução local
-
-```bash
-npm install
-cp .env.example .env
-npm run db:generate
-npx prisma db push --schema server/prisma/schema.prisma
-npm run db:seed
-npm start
-```
-
-Abrir: http://localhost:3000
-
-## Contas de demonstração
-
-- Administrador: `admin@ispotec.local` / `Admin@123`
-- Técnico: `tecnico@ispotec.local` / `Tecnico@123`
-- Colaborador: `colaborador@ispotec.local` / `Colaborador@123`
-
-Altere as palavras-passe antes de qualquer utilização real.
-
-## Deploy no Vercel + PostgreSQL
-
-O projeto já contém `api/index.js` e `vercel.json` para execução como função Node.js no Vercel. O build executa:
-
-```bash
-prisma generate --schema server/prisma/schema.prisma
-prisma db push --schema server/prisma/schema.prisma
-```
-
-No Vercel, configure pelo menos:
-
-- `DATABASE_URL`: URL de conexão PostgreSQL com SSL quando exigido pelo provedor.
-- `JWT_SECRET`: segredo forte e aleatório.
-
-A aplicação deve ser importada com a pasta `service-desk-ispotec` como **Root Directory** do projeto Vercel, caso o repositório seja conectado diretamente. Se o conteúdo for extraído de um ZIP, use o conteúdo dessa pasta como raiz do projeto.
+Service Desk web do ISPOTEC integrado com **Supabase Auth, PostgreSQL, Storage e RLS**.
 
 ## Funcionalidades
 
-- Autenticação e RBAC.
-- Criação, consulta, atualização e encerramento de tickets.
-- Histórico de alterações.
-- Comentários públicos e notas internas.
-- Categorias, utilizadores e SLA.
-- Regra de impressão configurável.
-- Dashboard e exportação CSV.
-- API REST.
+- Cadastro público de Estudantes e Colaboradores.
+- Aprovação administrativa antes do acesso.
+- Estados Pendente, Activo, Inactivo, Bloqueado e Recusado.
+- Dashboard separado para solicitantes e Service Desk.
+- Tickets com categorias, serviços, prioridade e SLA.
+- Mensagens públicas e notas internas.
+- Anexos privados no Supabase Storage.
+- Atribuição a agente/departamento.
+- Notificações.
+- Auditoria.
+- Reabertura e avaliação do atendimento.
+- Gestão de utilizadores, departamentos, categorias e serviços.
+
+## Supabase
+
+Projecto utilizado: \`ifoptec-service-desk\`.
+
+Configure no ambiente de execução:
+
+- \`SUPABASE_URL\`
+- \`SUPABASE_PUBLISHABLE_KEY\`
+- \`SUPABASE_SECRET_KEY\`
+
+A chave secreta do Supabase é obrigatória apenas no servidor e **nunca deve ser colocada no frontend, GitHub ou URL**.
+
+## Execução
+
+Requer Node.js 22+.
+
+\`\`\`bash
+npm install
+cp .env.example .env
+npm start
+\`\`\`
+
+Abrir \`http://localhost:3000\`.
+
+## Cadastro
+
+Na página de login existe:
+
+**Ainda não tem conta? Criar acesso**
+
+O utilizador escolhe Estudante ou Colaborador. O cadastro fica pendente até aprovação do administrador.
+
+## Segurança
+
+- Passwords são geridas pelo Supabase Auth.
+- O backend valida o JWT do Supabase.
+- O backend valida role e estado da conta.
+- O frontend não é considerado mecanismo de autorização.
+- Dados privados continuam protegidos por RLS.
+- Anexos são armazenados em bucket privado.
+- Acções administrativas e alterações de tickets são auditadas.
+- Não existem credenciais de demonstração hardcoded na interface.
+
+## Desenvolvimento
+
+O Prisma legado foi mantido no repositório para preservar histórico, mas o runtime actual utiliza Supabase. Não executar migrações Prisma sobre a base Supabase deste projecto.
+
+As alterações de base de dados foram aplicadas através de migrações Supabase não destrutivas.
