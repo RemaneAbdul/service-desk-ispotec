@@ -1,0 +1,28 @@
+name: Service Desk CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: service-desk-ispotec
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: service-desk-ispotec/package.json
+      - run: npm install
+      - run: node --check server/src/app.js
+      - run: node --check server/src/controllers/auth.js
+      - run: node --check server/src/controllers/tickets.js
+      - run: node --check server/src/controllers/admin.js
+      - run: node --check server/src/middlewares/auth.js
+      - run: node --check client/js/api.js
+      - run: node --check client/js/app.js
