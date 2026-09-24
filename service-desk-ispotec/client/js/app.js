@@ -1,6 +1,6 @@
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const app=document.querySelector("#app");
-let ME=null, DEPARTMENTS=[], CATEGORIES=[], SERVICES=[];
+let ME=null, DEPARTMENTS=[], CATEGORIES=[], SERVICES=[], STAFF_USERS=[];
 
 const roleIsStaff=()=>ME && ["Administrador","Supervisor","Agente"].includes(ME.role);
 const isRequester=()=>ME && !roleIsStaff();
@@ -15,10 +15,11 @@ const fmt=d=>d?new Date(d).toLocaleString("pt-MZ"):"—";
 const statusText=s=>s||"—";
 
 async function loadLookups(){
-  DEPARTMENTS=await API.request("/auth/departments");
+  DEPARTMENTS=await API.request("/auth/departments").catch(()=>[]);
   if(ME){
-    CATEGORIES=await API.request("/admin/categories").catch(()=>[]);
-    SERVICES=await API.request("/admin/services").catch(()=>[]);
+    const x=await API.request("/tickets/lookups").catch(()=>({categories:[],services:[],departments:[],staff:[]}));
+    CATEGORIES=x.categories||[]; SERVICES=x.services||[]; STAFF_USERS=x.staff||[];
+    if(x.departments?.length) DEPARTMENTS=x.departments;
   }
 }
 
@@ -241,7 +242,7 @@ function staffActions(t){
   return "<div class='card' style='margin-top:18px'><h2>Gestão do pedido</h2><div class='grid grid-2'>"+
     "<div class='field'><label>Estado</label><select id='editStatus'>"+["Novo","Em análise","Em atendimento","Aguardando utilizador","Aguardando departamento","Escalado","Resolvido","Fechado","Reaberto","Cancelado"].map(s=>"<option "+(s===t.status?"selected":"")+">"+s+"</option>").join("")+"</select></div>"+
     "<div class='field'><label>Prioridade</label><select id='editPriority'>"+["Baixa","Normal","Alta","Crítica"].map(s=>"<option "+(s===t.priority?"selected":"")+">"+s+"</option>").join("")+"</select></div>"+
-    "<div class='field'><label>Responsável</label><select id='editAssignee'><option value=''>Sem responsável</option></select></div>"+
+    "<div class='field'><label>Responsável</label><select id='editAssignee'><option value=''>Sem responsável</option>"+STAFF_USERS.map(u=>"<option value='"+u.id+"' "+(String(u.id)===String(t.assignee_id||"")?"selected":"")+">"+esc(u.full_name)+"</option>").join("")+"</select></div>"+
     "<div class='field'><label>Departamento responsável</label><select id='editAssignedDept'><option value=''>Nenhum</option>"+DEPARTMENTS.map(d=>"<option value='"+d.id+"' "+(String(d.id)===String(t.assigned_department_id||"")?"selected":"")+">"+esc(d.name)+"</option>").join("")+"</select></div>"+
     "</div><button class='btn yellow' id='saveTicket'>Guardar alterações</button></div>";
 }
