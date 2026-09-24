@@ -295,9 +295,9 @@ async function adminDashboard(){
 }
 
 async function notificationsPage(){
-  const rows=await API.admin("/notifications").catch(()=>[]);
+  const rows=await API.request("/auth/notifications").catch(()=>[]);
   shell("Notificações","<div class='card'>"+(rows.length?rows.map(n=>"<div class='pending-row'><div><b>"+esc(n.title)+"</b><p>"+esc(n.body)+"</p><small>"+fmt(n.created_at)+"</small></div>"+(!n.read_at?"<button class='btn secondary' data-read='"+n.id+"'>Marcar como lida</button>":"<span class='muted'>Lida</span>")+"</div>").join(""):"<p class='muted'>Não existem notificações.</p>")+"</div>");
-  document.querySelectorAll("[data-read]").forEach(b=>b.onclick=async()=>{await API.admin("/notifications/"+b.dataset.read+"/read",{method:"PATCH"});notificationsPage();});
+  document.querySelectorAll("[data-read]").forEach(b=>b.onclick=async()=>{await API.request("/auth/notifications/"+b.dataset.read+"/read",{method:"PATCH"});notificationsPage();});
 }
 
 async function profilePage(){
