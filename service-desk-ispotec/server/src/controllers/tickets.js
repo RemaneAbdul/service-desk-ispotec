@@ -243,3 +243,14 @@ exports.uploadAttachment = async (req,res) => {
   await event(req,ticket.id,"ANEXO_ADICIONADO",null,row.file_name);
   res.status(201).json(row);
 };
+
+
+exports.lookups = async (req,res) => {
+  const [categories,services,departments,staff] = await Promise.all([
+    adminClient.from("categories").select("id,name,status").eq("status","Activo").order("name"),
+    adminClient.from("services").select("id,name,category_id,department_id,sla_hours,status").eq("status","Activo").order("name"),
+    adminClient.from("departments").select("id,name,status").eq("status","Activo").order("name"),
+    isStaff(req) ? adminClient.from("profiles").select("id,full_name,email,role,user_type,department_id").in("role",STAFF).eq("status","Activo").order("full_name") : Promise.resolve({data:[]})
+  ]);
+  res.json({categories:categories.data||[],services:services.data||[],departments:departments.data||[],staff:staff.data||[]});
+};
