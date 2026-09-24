@@ -9,6 +9,7 @@ const upload = multer({
 });
 
 router.use(auth);
+router.get("/lookups", c.lookups);
 router.get("/", c.list);
 router.post("/", c.create);
 router.get("/:id", c.get);
