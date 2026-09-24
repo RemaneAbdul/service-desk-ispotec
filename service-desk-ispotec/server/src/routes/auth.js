@@ -6,6 +6,7 @@ const { auth } = require("../middlewares/auth");
 router.post("/login", rateLimit({windowMs:15*60*1000,limit:20}), c.login);
 router.post("/refresh", c.refresh);
 router.post("/register", rateLimit({windowMs:60*60*1000,limit:10}), c.register);
+router.get("/departments", c.departments);
 router.post("/logout", auth, c.logout);
 router.get("/me", auth, c.me);
 
