@@ -1,25 +1,46 @@
-const jwt = require("jsonwebtoken");
-const prisma = require("../utils/db");
+const { userFromToken } = require("../utils/supabase");
 
 async function auth(req, res, next) {
-  const token = (req.headers.authorization || "").replace(/^Bearer\s+/i, "");
+  const token = (req.headers.authorization || "").replace(/^Bearer\s+/i, "").trim();
   if (!token) return res.status(401).json({ error: "Não autenticado." });
+
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await prisma.user.findUnique({ where: { id: Number(payload.sub) } });
-    if (!user || !user.active) return res.status(401).json({ error: "Sessão inválida." });
+    const { user, profile, error } = await userFromToken(token);
+    if (error || !user || !profile) {
+      return res.status(401).json({ error: "Sessão inválida ou expirada." });
+    }
+
+    if (profile.status !== "Activo") {
+      return res.status(403).json({
+        error: "A sua conta não está activa."
+      });
+    }
+
     req.user = user;
+    req.profile = profile;
+    req.token = token;
     next();
-  } catch {
-    res.status(401).json({ error: "Sessão inválida ou expirada." });
+  } catch (error) {
+    console.error("auth middleware:", error);
+    return res.status(401).json({ error: "Sessão inválida ou expirada." });
   }
 }
 
 function requireRole(...roles) {
   return (req, res, next) => {
-    if (!roles.includes(req.user.role)) return res.status(403).json({ error: "Sem permissão." });
+    if (!req.profile || !roles.includes(req.profile.role)) {
+      return res.status(403).json({ error: "Sem permissão." });
+    }
     next();
   };
 }
 
-module.exports = { auth, requireRole };
+function requireStaff(req, res, next) {
+  return requireRole("Administrador", "Supervisor", "Agente")(req, res, next);
+}
+
+function requireAdmin(req, res, next) {
+  return requireRole("Administrador")(req, res, next);
+}
+
+module.exports = { auth, requireRole, requireStaff, requireAdmin };
